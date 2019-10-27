@@ -1,54 +1,56 @@
 import React, { useState, useRef, useCallback } from 'react';
-import Todotemplate from './components/TodoTemplate';
+import TodoTemplate from './components/TodoTemplate';
 import TodoInsert from './components/TodoInsert';
 import TodoList from './components/TodoList';
 
-function App() {
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      text: '리액트 기술보고서 쓰기',
-      checked: true
-    }, {
-      id: 2,
-      text: '내일 뭐하기!',
-      checked: true
-    }, {
-      id: 3,
-      text: 'js 정리하기',
-      checked: false
-    }
-  ])
 
+function createBulkTodos() {
+  const array = [];
+  for (let i = 1; i <= 2500; i++) {
+    array.push({
+      id: i,
+      text: `할 일 ${i}`,
+      checked: false,
+    });
+  }
+  return array;
+}
+
+const App = () => {
+  const [todos, setTodos] = useState(createBulkTodos);
+
+  // 고유 값으로 사용 될 id
+  // ref 를 사용하여 변수 담기
   const nextId = useRef(4);
+
   const onInsert = useCallback(text => {
     const todo = {
       id: nextId.current,
       text,
-      checked: false
+      checked: false,
     };
-    setTodos(todos.concat(todo));
-    nextId.current += 1;
-  }, [todos]);
+    setTodos(todos => todos.concat(todo));
+    nextId.current += 1; // nextId 1 씩 더하기
+  }, []);
 
   const onRemove = useCallback(id => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  }, [todos]);
+    setTodos(todos => todos.filter(todo => todo.id !== id));
+  }, []);
 
   const onToggle = useCallback(id => {
-    setTodos(
+    setTodos(todos =>
       todos.map(todo =>
-        todo.id === id ? { ...todo, checked: !todo.checked } : todo
-      )
-    )
-  }, [todos])
+        todo.id === id ? { ...todo, checked: !todo.checked } : todo,
+      ),
+    );
+  }, []);
 
   return (
-    <Todotemplate>
+    <TodoTemplate>
       <TodoInsert onInsert={onInsert} />
       <TodoList todos={todos} onRemove={onRemove} onToggle={onToggle} />
-    </Todotemplate>
+    </TodoTemplate>
   );
-}
+};
 
 export default App;

@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/TodoTemplate.scss';
 
-const Todotemplate = ({ children }) => {
+const TodoTemplate = ({ children }) => {
     return (
         <div className='TodoTemplate'>
             <div className='app-title'>일정 관리</div>
@@ -10,4 +10,4 @@ const Todotemplate = ({ children }) => {
     )
 }
 
-export default Todotemplate;
+export default TodoTemplate;
