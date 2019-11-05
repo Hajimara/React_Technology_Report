@@ -1,10 +1,14 @@
-import React from 'react';
-import './App.css';
+import React from "react";
+import "./App.css";
+import Todos from "./components/Todos";
+import CounterContainer from "./containers/CounterContainer";
 
 function App() {
   return (
-    <div className="App">
-      APP
+    <div>
+      <CounterContainer />
+      <hr></hr>
+      <Todos></Todos>
     </div>
   );
 }
