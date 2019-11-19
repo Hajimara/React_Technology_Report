@@ -1,15 +1,37 @@
 import Post from "../../models/post";
 import mongoose from "mongoose";
-import Joi from 'joi';
+import Joi from "joi";
 
 const { ObjectId } = mongoose.Types;
-export const checkObjectId = (ctx, next)=> {
-  const {id} = ctx.params;
-  if(!ObjectId.isValid(id)){
+export const getPostById = async (ctx, next) => {
+  const { id } = ctx.params;
+  if (!ObjectId.isValid(id)) {
     ctx.status = 400; // Bad Request
-    return ;
+    return;
   }
-  return next()
+  try {
+    const post = await Post.findById(id);
+    if (!post) {
+      ctx.status = 404;
+      return;
+    }
+    ctx.state.post = post;
+    return next();
+  } catch (error) {
+    ctx.throw(500, error);
+  }
+};
+
+export const checkOwnPost = (ctx, next)=>{
+  const {user, post } = ctx.state;
+  console.log(`user._id : ${user._id}`);
+  console.log(`post.user._id.toString() : ${post}`);
+  
+  if(post.user._id.toString() !== user._id){
+    ctx.status = 403;
+    return;
+  }
+  return next();
 }
 
 /**
@@ -26,21 +48,24 @@ export const write = async ctx => {
     // 객체가 다음 필드를 가지고 있음을 검증
     title: Joi.string().required(), // required가 있으면 필요 항목
     body: Joi.string().required(),
-    tag: Joi.array().items(Joi.string()).required()
-  })
+    tags: Joi.array()
+      .items(Joi.string())
+      .required()
+  });
   // 검증 후 실패처리
   const result = Joi.validate(ctx.request.body, schema);
-  if(result.error) {
+  if (result.error) {
     ctx.status = 400; // Bad Request
     ctx.body = result.error;
     return;
   }
 
-  const { title, body, tag } = ctx.request.body;
+  const { title, body, tags } = ctx.request.body;
   const post = new Post({
     title,
     body,
-    tag
+    tags,
+    user: ctx.state.user
   });
   try {
     await post.save();
@@ -55,26 +80,34 @@ export const write = async ctx => {
  * GET /api/posts/
  */
 export const list = async ctx => {
-  const page = parseInt(ctx.query.page || '1', 10); // 10진수 
-  if(page < 1){
+  const page = parseInt(ctx.query.page || "1", 10); // 10진수
+  if (page < 1) {
     ctx.status = 400;
     return;
   }
+
+  const { tag, username } = ctx.query;
+  const query = {
+    ...(username ? {'user.username': username} : {}),
+    ...(tag ? { tags: tag} : {})
+  } // 유효할 때만 해당 값을 넣는다.
+
   try {
-    const posts = await Post.find()
+    const posts = await Post.find(query)
       .sort({ _id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
-      
-    const postCount = await Post.countDocuments().exec(); // 문서 숫자 세주는 함수?
-    ctx.set('Last-Page',Math.ceil(postCount/10)); // 반올림
+
+    const postCount = await Post.countDocuments(query).exec(); // 문서 숫자 세주는 함수?
+    ctx.set("Last-Page", Math.ceil(postCount / 10)); // 반올림
     ctx.body = posts
-    .map(post => post.toJSON())
-    .map(post=>({
-      ...post,
-      body: post.body.length < 200 ? post.body : `${post.body.slice(0,200)}...`
-    }));
+      .map(post => post.toJSON())
+      .map(post => ({
+        ...post,
+        body:
+          post.body.length < 200 ? post.body : `${post.body.slice(0, 200)}...`
+      }));
   } catch (error) {
     ctx.throw(500, error);
   }
@@ -85,17 +118,7 @@ export const list = async ctx => {
  * GET /api/posts/:id
  */
 export const read = async ctx => {
-  const { id } = ctx.params;
-  try {
-    const post = await Post.findById(id).exec();
-    if (!post) {
-      ctx.status = 404;
-      return;
-    }
-    ctx.body = post;
-  } catch (error) {
-    ctx.throw(500, e);
-  }
+  ctx.body = ctx.state.post;
 };
 
 export const remove = async ctx => {
@@ -115,27 +138,27 @@ export const update = async ctx => {
     title: Joi.string(), // required가 있으면 필요 항목
     body: Joi.string(),
     tag: Joi.array().items(Joi.string())
-  })
+  });
   // 검증 후 실패처리
   const result = Joi.validate(ctx.request.body, schema);
-  if(result.error) {
+  if (result.error) {
     ctx.status = 400; // Bad Request
     ctx.body = result.error;
     return;
   }
-  
+
   try {
-    const post = await Post.findByIdAndUpdate(id, ctx.request.body,{
+    const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
       new: true // 이 값을 설정하면 업데이트 된 데이터를 반환한다.
-                // flase일 때는 업데이트 되기 전 데이터를 반환한다.
+      // flase일 때는 업데이트 되기 전 데이터를 반환한다.
     }).exec();
-    if(!post) {
+    if (!post) {
       ctx.status = 404;
       return;
     }
     ctx.body = post;
   } catch (error) {
-    ctx.throw(500,error)
+    ctx.throw(500, error);
   }
 };
 
