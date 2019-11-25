@@ -22,17 +22,17 @@ export const getPostById = async (ctx, next) => {
   }
 };
 
-export const checkOwnPost = (ctx, next)=>{
-  const {user, post } = ctx.state;
+export const checkOwnPost = (ctx, next) => {
+  const { user, post } = ctx.state;
   console.log(`user._id : ${user._id}`);
   console.log(`post.user._id.toString() : ${post}`);
-  
-  if(post.user._id.toString() !== user._id){
+
+  if (post.user._id.toString() !== user._id) {
     ctx.status = 403;
     return;
   }
   return next();
-}
+};
 
 /**
  * 포스트 작성
@@ -88,9 +88,9 @@ export const list = async ctx => {
 
   const { tag, username } = ctx.query;
   const query = {
-    ...(username ? {'user.username': username} : {}),
-    ...(tag ? { tags: tag} : {})
-  } // 유효할 때만 해당 값을 넣는다.
+    ...(username ? { "user.username": username } : {}),
+    ...(tag ? { tags: tag } : {})
+  }; // 유효할 때만 해당 값을 넣는다.
 
   try {
     const posts = await Post.find(query)
