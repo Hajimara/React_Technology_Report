@@ -1,7 +1,7 @@
 /*  Gray
  *  ─────────────────────────────────── */
 const palette = {
-  gary: [
+  gray: [
     "#f8f9fa",
     "#f1f3f5",
     "#e9ecef",
