@@ -3,8 +3,8 @@ import produce from "immer";
 import createRequestSaga, {
   createRequestActionTypes
 } from "../lib/createRequestSaga";
-import * as authAPI from "../api/auth";
 import { takeLatest } from "redux-saga/effects";
+import * as authAPI from "../lib/api/auth";
 
 const CHANGE_FIELD = "auth/CHANGE_FIELD";
 const INITIALIZE_FORM = "auth/INITIALIZE_FORM";
