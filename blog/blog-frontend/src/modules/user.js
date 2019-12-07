@@ -24,7 +24,7 @@ function checkFailureSaga() {
         console.log('localStorage is not working');
         
     }
-}// 함수내부에서 yield를 사용하지 않으므로 제너레이서함수 선언이 불필요
+}// 함수내부에서 yield를 사용하지 않으므로 제너레이터함수 선언이 불필요
 
 function* logoutSaga() {
     try {
