@@ -10,6 +10,7 @@ import { composeWithDevTools } from "redux-devtools-extension";
 import { Provider } from "react-redux";
 import createSagaMiddleware from "redux-saga";
 import { tempSetUser, check } from "./modules/user";
+import { HelmetProvider } from "react-helmet-async";
 
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(
@@ -19,13 +20,13 @@ const store = createStore(
 
 function loadUser() {
   try {
-    const user =localStorage.getItem('user');
-    if(!user) return; // 로그인 상태가 아닐경우 아무것도 하지 않음
+    const user = localStorage.getItem("user");
+    if (!user) return; // 로그인 상태가 아닐경우 아무것도 하지 않음
 
-    store.dispatch(tempSetUser(user))
+    store.dispatch(tempSetUser(user));
     store.dispatch(check());
   } catch (error) {
-    console.log('localStorage is not working');
+    console.log("localStorage is not working");
   }
 }
 
@@ -35,7 +36,9 @@ loadUser(); // 사가위에 적용 시 사가부분이 제대로 작동하지 �
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>
-      <App />
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
     </BrowserRouter>
   </Provider>,
   document.getElementById("root")
